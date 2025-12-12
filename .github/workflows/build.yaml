@@ -65,7 +65,7 @@ jobs:
         run: chmod -v a+x target/${{ matrix.job.target }}/release/*
 
       - name: Publish Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: binaries-linux-${{ matrix.job.name }}
           path: |
@@ -76,7 +76,7 @@ jobs:
 
   build-win:
     name: Build - windows
-    runs-on: windows-2022
+    runs-on: windows-2019
 
     steps:
       
@@ -109,7 +109,6 @@ jobs:
           scoop update
           scoop bucket add extras
           scoop install nsis
-
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
@@ -155,7 +154,7 @@ jobs:
           recursive: false
 
       - name: Publish Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: binaries-windows-x86_64
           path: |
@@ -165,7 +164,7 @@ jobs:
             ui\SignOutput\RustDeskServer.Setup.exe
           if-no-files-found: error
 
-  # github (draft) release with all binaries
+  # github (draft) release with all binaries
   release:
 
     name: Github release
@@ -187,7 +186,7 @@ jobs:
     steps:
 
       - name: Download binaries (${{ matrix.job.os }} - ${{ matrix.job.name }})
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: binaries-${{ matrix.job.os }}-${{ matrix.job.name }}
           path: ${{ matrix.job.name }}
@@ -200,7 +199,6 @@ jobs:
           sudo apt update
           DEBIAN_FRONTEND=noninteractive sudo apt install -y zip
           zip ${{ matrix.job.name }}/rustdesk-server-${{ matrix.job.os }}-${{ matrix.job.name }}${{ matrix.job.suffix }}.zip ${{ matrix.job.name }}/*
-
       - name: Create Release (${{ matrix.job.os }} - (${{ matrix.job.name }})
         uses: softprops/action-gh-release@v1
         with:
@@ -230,7 +228,7 @@ jobs:
           submodules: recursive
         
       - name: Download binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: binaries-linux-${{ matrix.job.name }}
           path: docker/rootfs/usr/bin
@@ -264,7 +262,6 @@ jobs:
           M=${T%%.*}
           echo "GIT_TAG=$T" >> $GITHUB_ENV
           echo "MAJOR_TAG=$M" >> $GITHUB_ENV
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -303,11 +300,10 @@ jobs:
           M=${T%%.*}
           echo "GIT_TAG=$T" >> $GITHUB_ENV
           echo "MAJOR_TAG=$M" >> $GITHUB_ENV
-
       # manifest for :1.2.3 tag
       #  this has to run only if invoked by a new tag
       - name: Create and push manifest (:ve.rs.ion)
-        uses: Noelware/docker-manifest-action@0.4.3
+        uses: Noelware/docker-manifest-action@master
         if: github.event_name != 'workflow_dispatch'
         with:
           base-image: ${{ secrets.DOCKER_IMAGE }}:${{ env.GIT_TAG }}
@@ -316,7 +312,7 @@ jobs:
 
       # manifest for :1 tag (major release)
       - name: Create and push manifest (:major)
-        uses: Noelware/docker-manifest-action@0.4.3
+        uses: Noelware/docker-manifest-action@master
         with:
           base-image: ${{ secrets.DOCKER_IMAGE }}:${{ env.MAJOR_TAG }}
           extra-images: ${{ secrets.DOCKER_IMAGE }}:${{ env.MAJOR_TAG }}-amd64,${{ secrets.DOCKER_IMAGE }}:${{ env.MAJOR_TAG }}-arm64v8,${{ secrets.DOCKER_IMAGE }}:${{ env.MAJOR_TAG }}-armv7,${{ secrets.DOCKER_IMAGE }}:${{ env.MAJOR_TAG }}-i386
@@ -324,7 +320,7 @@ jobs:
 
       # manifest for :latest tag
       - name: Create and push manifest (:latest)
-        uses: Noelware/docker-manifest-action@0.4.3
+        uses: Noelware/docker-manifest-action@master
         with:
           base-image: ${{ secrets.DOCKER_IMAGE }}:${{ env.LATEST_TAG }}
           extra-images: ${{ secrets.DOCKER_IMAGE }}:${{ env.LATEST_TAG }}-amd64,${{ secrets.DOCKER_IMAGE }}:${{ env.LATEST_TAG }}-arm64v8,${{ secrets.DOCKER_IMAGE }}:${{ env.LATEST_TAG }}-armv7,${{ secrets.DOCKER_IMAGE }}:${{ env.LATEST_TAG }}-i386
@@ -353,7 +349,7 @@ jobs:
           submodules: recursive
         
       - name: Download binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: binaries-linux-${{ matrix.job.name }}
           path: docker-classic/
@@ -387,7 +383,6 @@ jobs:
           M=${T%%.*}
           echo "GIT_TAG=$T" >> $GITHUB_ENV
           echo "MAJOR_TAG=$M" >> $GITHUB_ENV
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -424,11 +419,10 @@ jobs:
           M=${T%%.*}
           echo "GIT_TAG=$T" >> $GITHUB_ENV
           echo "MAJOR_TAG=$M" >> $GITHUB_ENV
-
       # manifest for :1.2.3 tag
       #  this has to run only if invoked by a new tag
       - name: Create and push manifest (:ve.rs.ion)
-        uses: Noelware/docker-manifest-action@0.4.3
+        uses: Noelware/docker-manifest-action@master
         if: github.event_name != 'workflow_dispatch'
         with:
           base-image: ${{ secrets.DOCKER_IMAGE_CLASSIC }}:${{ env.GIT_TAG }}
@@ -437,7 +431,7 @@ jobs:
 
       # manifest for :1 tag (major release)
       - name: Create and push manifest (:major)
-        uses: Noelware/docker-manifest-action@0.4.3
+        uses: Noelware/docker-manifest-action@master
         with:
           base-image: ${{ secrets.DOCKER_IMAGE_CLASSIC }}:${{ env.MAJOR_TAG }}
           extra-images: ${{ secrets.DOCKER_IMAGE_CLASSIC }}:${{ env.MAJOR_TAG }}-amd64,${{ secrets.DOCKER_IMAGE_CLASSIC }}:${{ env.MAJOR_TAG }}-arm64v8,${{ secrets.DOCKER_IMAGE_CLASSIC }}:${{ env.MAJOR_TAG }}-armv7
@@ -445,7 +439,7 @@ jobs:
 
       # manifest for :latest tag
       - name: Create and push manifest (:latest)
-        uses: Noelware/docker-manifest-action@0.4.3
+        uses: Noelware/docker-manifest-action@master
         with:
           base-image: ${{ secrets.DOCKER_IMAGE_CLASSIC }}:${{ env.LATEST_TAG }}
           extra-images: ${{ secrets.DOCKER_IMAGE_CLASSIC }}:${{ env.LATEST_TAG }}-amd64,${{ secrets.DOCKER_IMAGE_CLASSIC }}:${{ env.LATEST_TAG }}-arm64v8,${{ secrets.DOCKER_IMAGE_CLASSIC }}:${{ env.LATEST_TAG }}-armv7
@@ -481,9 +475,8 @@ jobs:
           sudo apt update
           DEBIAN_FRONTEND=noninteractive sudo apt install -y devscripts build-essential debhelper pkg-config ${{ matrix.job.crossbuild_package }}
           mkdir -p debian-build/${{ matrix.job.name }}/bin
-
       - name: Download binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: binaries-linux-${{ matrix.job.name }}
           path: debian-build/${{ matrix.job.name }}/bin
@@ -495,7 +488,6 @@ jobs:
           cat debian/control.tpl | sed 's/{{ ARCH }}/${{ matrix.job.debian_platform }}/' > debian-build/${{ matrix.job.name }}/debian/control
           cd debian-build/${{ matrix.job.name }}/
           debuild -i -us -uc -b -a${{ matrix.job.debian_platform }}
-
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
