@@ -8,7 +8,8 @@ name: build
 # DOCKER_HUB_PASSWORD is a token you should create under "account settings / security" with read/write access
 
 permissions:
-  contents: read
+  #pikmin contents: read
+  contents: write
   packages: write
 
 on:
